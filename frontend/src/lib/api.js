@@ -2,7 +2,8 @@ import axios from "axios";
 
 const baseURL = import.meta.env.VITE_API_URL;
 export const api = axios.create({
-    baseURL,
+    // baseURL,
+    baseURL: "/api",
     headers: {
         "Accept": "application/json",
     },
@@ -14,6 +15,7 @@ export const apiIndex = axios.create({
         "Accept": "application/json",
         "X-Requested-With": 'XMLHttpRequest'
     },
+    withCredentials: true
 })
 
 export const overrideMethod = (method, api) => {

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -190,7 +192,7 @@ class UserController extends Controller
 
         $validate = $request->validate([
             'name' => 'sometimes|required|max:50',
-            'email' => 'sometimes|required|email|unique:users,email',
+            'email' => 'sometimes|required|email|unique:users,email,'.$id,
             'password' => 'sometimes|required|min:5',
             'role_id' => 'sometimes|required|exists:roles,id',
             'profil' => 'sometimes|required|image|mimes:jpg,jpeg,png,gif,webp|max:2048',

@@ -1,39 +1,24 @@
-"use client"
-import { useState, useEffect } from "react"
-import type React from "react"
+import { useState, useEffect, useRef } from "react"
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import AuthLayout from "@/components/auth-layout"
-import { Login } from "@/lib/Authenticate"
-import { useAuth } from "@/lib/useAuth"
-import Loading, { LoadingCircle } from "@/components/ui/Loading"
+import Loading, { LoadingCircle } from "../components/ui/Loading"         
+import { useAuth } from "../context/AuthContext";
+import { loginSchema } from "../lib/zod";
+import { apiIndex, api } from "../lib/api";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
-  const router = useRouter()
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [errorInput, setErrorInput] = useState({});
   const [success, setSuccess] = useState("");
-  const {user, loading} = useAuth();
-  const [loadingPage, setLoadingPage] = useState(true);
+  const {user, login} = useAuth();
   const [loadingAuth, setLoadingAuth] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      router.push("/dashboard");
-    }
-
-    if(!loading) {
-      setLoadingPage(false)
-    }
-  }, [user, router, loading]);
-
-  if(loadingPage) {
-    return <Loading text="Memuat..."/>
-  }
+  const emailRef = useRef(null);
+  const pwRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -46,24 +31,52 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoadingAuth(true);
-    
-    const login = await Login(formData);
-    if(login.status == false || !login.success == false) {
-      setError(login.pesan || login.message);
+
+    const parsed = loginSchema.safeParse(formData);
+    setError("");
+    setErrorInput({});
+    if(!parsed.success) {
+      const fieldErrors = {};
+      parsed.error.issues.forEach((err) => {
+        const field = err.path[0];
+        fieldErrors[field] = err.message;
+      })
+
+      setErrorInput(fieldErrors);
+
+      if(fieldErrors.email && emailRef.current) {
+        emailRef.current.focus()
+      } else if(fieldErrors.password && pwRef.current) {
+        pwRef.current.focus();
+      }
+
+      setLoadingAuth(false);
+      return;
     }
 
-    if(login.status == true || login.success == true) {
-      // setSuccess(login.pesan || login.message)
-      setSuccess("Masuk Berhasil Tunggu...Sedang Prosess")
-      router.push('/dashboard');
+    // jika valid, lanjutkan proses login
+    try {
+      await apiIndex.get("/sanctum/csrf-cookie");
+      await login(formData.email, formData.password);
+      navigate("/dashboard", {replace: true});
+    } catch(err) {
+      setError("Gagal untuk login, periksa kembali email dan password anda");
+    } finally {
+      setLoadingAuth(false);
     }
+  }
 
-    setLoadingAuth(false);
+  useEffect(() => {
+    if(user) {
+      navigate("/dashboard", {replace: true});
+    }
+  }, [user, navigate]);
 
+  const handleLogout = async () => {
+    await api.post("/logout");
   }
 
   return (
-    <AuthLayout>
       <div className="auth-forms-container">
         <h2>Masuk ke Akun Anda</h2>
         <p className="mb-2 text-red-500 text-center">{error}</p>
@@ -77,12 +90,15 @@ export default function LoginPage() {
               type="email"
               id="email"
               name="email"
-              className="form-input bg-gray-800"
+              className={`form-input ${errorInput.password ? "error placeholder:text-red-500" : ""}`}
               placeholder="Masukkan email"
               value={formData.email}
               onChange={handleChange}
-              required
+              ref={emailRef}
             />
+          {errorInput.email && (
+            <p className="text-red-500">{errorInput.email}</p>
+          )}
           </div>
           <div className="form-group">
             <label htmlFor="password" className="form-label">
@@ -92,22 +108,24 @@ export default function LoginPage() {
               type="password"
               id="password"
               name="password"
-              className="form-input bg-gray-800"
+              className={`form-input ${errorInput.password ? "error placeholder:text-red-500" : ""}`}
               placeholder="Masukkan kata sandi"
               value={formData.password}
               onChange={handleChange}
-              required
+              ref={pwRef}
             />
+            {errorInput.password && (
+              <p className="text-red-500">{errorInput.password}</p>
+            )}
           </div>
-          <button disabled={loadingAuth} type="submit" className="form-submit flex justify-center gap-2">
+          <button disabled={loadingAuth} type="submit" className={`form-submit flex justify-center gap-2 ${loadingAuth ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}>
             {loadingAuth && <LoadingCircle/>} Masuk
           </button>
-          <div className="form-footer">
-            Belum punya akun? <Link href="/register">Daftar di sini</Link>
-          </div>
+          {/* <div className="form-footer">
+            Belum punya akun? <a href="/register">Daftar di sini</a>
+            </div> */}
         </form>
       </div>
-    </AuthLayout>
   )
 }
 

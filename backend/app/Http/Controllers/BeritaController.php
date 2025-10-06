@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\Berita;
+use App\Models\Kategori;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -46,7 +48,13 @@ class BeritaController extends Controller
         // Apply filtering jika ada dan field valid
         if (!empty($filters)) {
             foreach ($filters as $field => $value) {
-                if (in_array($field, $validColumns)) {
+                if ($field === 'kategori_id') {
+                    // filter berdasarkan kategori (pivot)
+                    $query->whereHas('kategori', function ($q) use ($value) {
+                        $q->where('kategori_id', $value);
+                    });
+                } elseif (in_array($field, $validColumns)) {
+                    // filter biasa (langsung kolom berita)
                     $query->where($field, 'LIKE', "%$value%");
                 }
             }
@@ -54,11 +62,16 @@ class BeritaController extends Controller
 
         if (!empty($fixfilters)) {
             foreach ($fixfilters as $field => $value) {
-                if (in_array($field, $validColumns)) {
+                if ($field === 'kategori_id') {
+                    $query->whereHas('kategori', function ($q) use ($value) {
+                        $q->where('kategori_id', $value);
+                    });
+                } elseif (in_array($field, $validColumns)) {
                     $query->where($field, $value);
                 }
             }
         }
+
 
         // Apply sorting (hanya jika field valid)
         $query->orderBy($sort, $order);
@@ -167,12 +180,19 @@ class BeritaController extends Controller
                 'data' => 'Data Berita Tidak Ditemukan',
             ], 404);
             
-        } else {
-            return response()->json([
-                'success' => true,
-                'data' => $berita,
-            ], 200);
         }
+
+        $session_key = 'berita_' . $id . '_viewed';
+        if(!session()->has($session_key)) {
+            $berita->increment('views');
+            session()->put($session_key, true);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $berita,
+        ], 200);
+        
     }
 
     /**
@@ -415,5 +435,33 @@ class BeritaController extends Controller
                 'data' => $berita,
             ], 200);
         }
+    }
+
+    public function getDetailBeritaku(Request $request) {
+        $userId = $request->user()->id;
+        $data = Berita::where('user_id', $userId)
+            ->get();
+
+        $totalViews = $data->sum('views');
+        $totalBerita = $data->count();
+        $totalKategori = Kategori::count();
+        $viewsPerBulan = Berita::where('user_id', $userId)
+                        ->selectRaw('YEAR(created_at) as tahun, MONTH(created_at) as bulan, SUM(views) as total_views')
+                        ->whereYear('created_at', Carbon::now()->year)
+                        ->groupBy('tahun', 'bulan')
+                        ->orderBy('tahun')
+                        ->orderBy('bulan')
+                        ->get();
+
+
+        return response()->json([
+            'sukses' => true,
+            'data' => [
+                'berita'        => $totalBerita,
+                'views'         => $totalViews,
+                'viewstrafic'   => $viewsPerBulan,
+                'kategori'      => $totalKategori
+            ]
+        ]);
     }
 }

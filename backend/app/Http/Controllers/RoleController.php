@@ -27,7 +27,7 @@ class RoleController extends Controller
         $fixfilters = $request->json('fixfilters', []); // digunakan untuk mencari sesuai key dan field di database
 
         // Dapatkan daftar field yang valid dari tabel 'role'
-        $validColumns = Schema::getColumnListing('role');
+        $validColumns = Schema::getColumnListing('roles');
 
         // Validasi order (hanya ASC atau DESC)
         if (!in_array($order, ['ASC', 'DESC'])) {

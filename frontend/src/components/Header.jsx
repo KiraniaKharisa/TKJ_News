@@ -3,6 +3,8 @@ import { Menu, X } from "lucide-react"
 import { Search } from "lucide-react"
 import { api, overrideMethod } from "../lib/api"
 import { LoadingText } from "./ui/Loading"
+import { useAuth } from "../context/AuthContext"
+import { potongText } from "../lib/Helper"
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -12,6 +14,7 @@ export default function Header() {
   }
   const [loading, setLoading] = useState(true)
   const [kategoriData, setKategoriData] = useState([])
+  const {user} = useAuth();
 
   const getKategori = async () => {
     setLoading(true)
@@ -51,12 +54,18 @@ export default function Header() {
               </form>
             </div>
             <div className="user-actions">
-                  <a href="/login" className="btn btn-outline">
-                    Masuk
-                  </a>
-                  <a href="/register" className="btn btn-primary">
+                  {user?.name ? (
+                    <a href="/dashboard" className="btn btn-outline">
+                      {`Halo, ${potongText(user.name, 20)}`}
+                    </a>
+                  ) : (
+                    <a href="/login" className="btn btn-outline">
+                      Masuk
+                    </a>
+                  )}
+                  {/* <a href="/register" className="btn btn-primary">
                     Daftar
-                  </a>
+                  </a> */}
                 {/* <a href="/dashboard" className="btn btn-primary">
                   Dashboard
                 </a> */}
@@ -91,7 +100,7 @@ export default function Header() {
                 {kategoriData && kategoriData.length != 0 ? kategoriData.map((item) => (
                   <li key={item.id} className="nav-item">
                     <a
-                      href={`/artikels?kategori=${item.id}`}
+                      href={`/berita?kategori=${item.id}`}
                       className={`nav-link ${activeLink === item.id ? "active" : ""}`}
                       onClick={() => {
                         setActiveLink(item.id)

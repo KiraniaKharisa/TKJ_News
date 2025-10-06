@@ -15,9 +15,10 @@ Route::get('/terbaru', [BeritaController::class, 'terbaru']);
 Route::get('/populer', [BeritaController::class, 'populer']);
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/detailberitaku', [BeritaController::class, 'getDetailBeritaku']);
+    Route::get('/me', [AuthController::class, 'me']);
     Route::post('/like', [BeritaController::class, 'like']);
     Route::post('/unlike', [BeritaController::class, 'unlike']);
-    Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::resource('kategori', KategoriController::class)->only(['store', 'update', 'destroy']);
     Route::resource('berita', BeritaController::class)->only(['store', 'update', 'destroy']);

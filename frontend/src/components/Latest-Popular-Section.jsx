@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import Helper from "../lib/Helper"
+import { formatDateCreatedAt, hilangkanHTML, potongText } from "../lib/Helper"
 import { LoadingText } from "./ui/Loading"
 import { overrideMethod, api } from "../lib/api"
 
@@ -55,7 +55,7 @@ export default function LatestPopularSection() {
       <section className="latest-section section">
         <div className="section-header">
           <h2 className="section-title font-bold">Berita Populer</h2>
-          <a href="/artikels" className="view-all">
+          <a href="/berita" className="view-all">
             Lihat Semua
           </a>
         </div>
@@ -82,10 +82,10 @@ export default function LatestPopularSection() {
                     ))}
                   </div>
                   <h3 className="latest-title font-bold">{item.judul_artikel}</h3>
-                  <p className="latest-excerpt">{Helper.potongText(Helper.hilangkanHTMLTAG(item.isi), 100)}</p>
+                  <p className="latest-excerpt">{potongText(hilangkanHTML(item.isi), 100)}</p>
                   <div className="news-meta">
                     <span>Oleh: {item.user?.name}</span>
-                    <span>{Helper.dateConvert(item.created_at)}</span>
+                    <span>{formatDateCreatedAt(item.created_at)}</span>
                   </div>
                 </div>
               </a>
@@ -100,7 +100,7 @@ export default function LatestPopularSection() {
       <section className="popular-section section">
         <div className="section-header">
           <h2 className="section-title font-bold">Kategori Populer</h2>
-          <a href="/artikels" className="view-all">
+          <a href="/kategori" className="view-all">
             Lihat Semua
           </a>
         </div>

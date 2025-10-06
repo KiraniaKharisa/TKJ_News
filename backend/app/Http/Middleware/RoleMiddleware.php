@@ -25,7 +25,7 @@ class RoleMiddleware
         }
 
         // Cek role user
-        if ($user->role !== $role) {
+        if ($user->role->role !== $role) {
             return response()->json([
                 'success' => false,
                 'message' => 'Akses ditolak, role harus ' . $role

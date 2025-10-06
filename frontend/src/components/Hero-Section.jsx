@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import Helper from "../lib/Helper"
+import { formatDateCreatedAt } from "../lib/Helper"
 import { useMediaQuery } from "../hooks/useMediaQuery"
 import { api, overrideMethod } from "../lib/api"
 import { LoadingScreen } from "./ui/Loading"
+import { potongText } from "../lib/Helper"
+import { useNavigate } from "react-router-dom"
 
 export default function HeroSection() {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -12,6 +14,7 @@ export default function HeroSection() {
   const touchStartX = useRef(0)
   const touchEndX = useRef(0)
   const isMobile = useMediaQuery("(max-width: 768px)")
+  const navigate = useNavigate();
 
    const getBerita = async () => {
       setLoading(true)
@@ -64,6 +67,10 @@ export default function HeroSection() {
     }
   }
 
+  const handleRedirectDetail = (id) => {
+    navigate(`/berita/${id}`);
+  }
+
   if(loading) return <LoadingScreen/>
 
   return (
@@ -90,10 +97,10 @@ export default function HeroSection() {
                     <span key={kat.id} className="carousel-category">{kat.kategori}</span>
                   ))}
                 </div>
-                <h2 className="carousel-title">{Helper.potongText(item.judul, 100)}</h2>
+                <h2 className="carousel-title">{potongText(item.judul, 100)}</h2>
                 <div className="carousel-meta">
                   <span>Oleh: {item.user.name}</span>
-                  <span>{Helper.dateConvert(item.created_at)}</span>
+                  <span>{formatDateCreatedAt(item.created_at)}</span>
                 </div>
               </div>
             </div>

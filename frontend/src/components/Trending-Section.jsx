@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react"
-import Helper from "../lib/Helper"
+import { formatDateCreatedAt, potongText } from "../lib/Helper"
 import { api, overrideMethod } from "../lib/api";
 import { LoadingText } from "./ui/Loading";
 
@@ -31,7 +31,7 @@ export default function TrendingSection() {
     <section className="trending-section section">
       <div className="section-header">
         <h2 className="section-title font-bold">Berita Populer</h2>
-        <a href="/artikels" className="view-all">
+        <a href="/berita  " className="view-all">
           Lihat Semua
         </a>
       </div>
@@ -55,8 +55,8 @@ export default function TrendingSection() {
                             <span key={kat.id} className="trending-category font-medium">{kat.kategori}</span>
                           ))}
                         </div>
-                      <h3 className="trending-title font-semibold">{Helper.potongText(item.judul, 40)}</h3>
-                      <div className="trending-date">{Helper.dateConvert(item.created_at)}</div>
+                      <h3 className="trending-title font-semibold">{potongText(item.judul, 40)}</h3>
+                      <div className="trending-date">{formatDateCreatedAt(item.created_at)}</div>
                     </div>
                   </a>
                 ))}
